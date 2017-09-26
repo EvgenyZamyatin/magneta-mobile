@@ -43,6 +43,7 @@ def train(args):
                 cnt += 1
                 content_batch = content_bg.get_batch()
                 alpha = np.random.uniform(0, 1, batch_size)
+                alpha = np.ones_like(alpha)
                 t -= time()
                 loss = model.train(content_batch, alpha) + loss
                 t += time()
@@ -51,6 +52,7 @@ def train(args):
             print('loss:', loss / cnt)
             print('train time:', t)
             alpha = np.random.uniform(0, 1, batch_size)
+            alpha = np.ones_like(alpha)
             content_batch = content_bg.get_batch()
             samples_0 = content_batch
             samples_1 = model.style(content_batch, alpha)
