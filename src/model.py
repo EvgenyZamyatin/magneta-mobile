@@ -109,7 +109,7 @@ class Model:
                 h = upsampling(h, alpha, 'uconv2', 32, 3, 2)
 
                 h = upsampling(h, alpha, 'uconv3', 3, 9, 1, False, False)
-                h = tf.nn.tanh(h) * 150 + 255/2
+                h = tf.nn.tanh(h) * 150 + 255 / 2
             return h
 
         self._transform = transform
@@ -125,18 +125,23 @@ class Model:
         fx_vgg = x_ftr_vgg[CONTENT_LAYER_VGG]
 
         r_style_f = [r_ftr_vgg[i] for i in STYLE_LAYERS_VGG]
+        x_style_f = [x_ftr_vgg[i] for i in STYLE_LAYERS_VGG]
 
         with self:
             y_style_f = self.sess.run([x_ftr_vgg[i] for i in STYLE_LAYERS_VGG],
-                                 {x_var: self.style_image[np.newaxis]})
+                                      {x_var: self.style_image[np.newaxis]})
 
         content_loss = tf.nn.l2_loss(fr_vgg - fx_vgg) / tf.cast(tf.size(fr_vgg), tf.float32)
 
         style_loss = 0
-        for yf, rf in zip(y_style_f, r_style_f):
+        for xf, yf, rf in zip(x_style_f, y_style_f, r_style_f):
             y_gram = _gram_matrix(yf)
             r_gram = _gram_matrix(rf)
-            style_loss += tf.nn.l2_loss(y_gram - r_gram) / tf.cast(tf.size(y_gram), tf.float32)
+            x_gram = _gram_matrix(xf)
+            style_loss += alpha * tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2, 3)) / tf.cast(tf.size(y_gram),
+                                                                                                 tf.float32)
+            style_loss += (1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2, 3)) / tf.cast(tf.size(y_gram),
+                                                                                                       tf.float32)
 
         y_tv = tf.nn.l2_loss(r[:, 1:, :, :] - r[:, :-1, :, :]) / tf.cast(tf.size(r[:, 1:, :, :]), tf.float32)
         x_tv = tf.nn.l2_loss(r[:, :, 1:, :] - r[:, :, :-1, :]) / tf.cast(tf.size(r[:, :, 1:, :]), tf.float32)
