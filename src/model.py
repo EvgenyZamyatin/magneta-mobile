@@ -114,7 +114,7 @@ class Model:
 
     def _build_fn(self):
         x_var = tf.placeholder(tf.float32, (None, 256, 256, 3), 'input_x')
-        alpha = tf.placeholder(tf.float32, (None,), 'input_alpha')
+        alpha = tf.placeholder(tf.float32, (None, 1, 1, 1), 'input_alpha')
         r = self._transform(x_var, alpha, False)
         x_ftr_vgg = self._encode_vgg(x_var, False)
         r_ftr_vgg = self._encode_vgg(r, True)
