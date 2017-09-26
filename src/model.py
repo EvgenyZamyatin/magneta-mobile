@@ -124,8 +124,8 @@ class Model:
 
         r_style_f = [r_ftr_vgg[i] for i in STYLE_LAYERS_VGG]
 
-        with tf.Session() as sess:
-            y_style_f = sess.run([x_ftr_vgg[i] for i in STYLE_LAYERS_VGG],
+        with self:
+            y_style_f = self.sess.run([x_ftr_vgg[i] for i in STYLE_LAYERS_VGG],
                                  {x_var: self.style_image[np.newaxis]})
 
         content_loss = tf.nn.l2_loss(fr_vgg - fx_vgg) / tf.cast(tf.size(fr_vgg), tf.float32)
