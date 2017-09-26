@@ -61,8 +61,9 @@ def _cond_instance_norm(x, alpha, name):
         epsilon = 1e-5
         x_normalized = (x - x_mu) / tf.sqrt(x_sigma_sq + epsilon)
         y = x_normalized * sigma + mu
-        result = x * (1 - alpha) + y * alpha
-        return result
+        return y
+        #result = x * (1 - alpha) + y * alpha
+        #return result
 
 
 """

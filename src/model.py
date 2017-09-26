@@ -69,7 +69,7 @@ class Model:
         alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
-            self.args['alpha']: alpha
+            # self.args['alpha']: alpha
         }
         res = self.sess.run(self.test, feed_dict=args)
         return _unprocess(res)
@@ -79,7 +79,7 @@ class Model:
         alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
-            self.args['alpha']: alpha,
+            # self.args['alpha']: alpha,
         }
         _, summary, cl, sl, tl = self.sess.run([self.train_step, self.summary_op] + self.losses, feed_dict=args)
         res = np.array([cl, sl, tl])
@@ -117,6 +117,7 @@ class Model:
     def _build_fn(self):
         x_var = tf.placeholder(tf.float32, (None, 256, 256, 3), 'input_x')
         alpha = tf.placeholder(tf.float32, (None, 1, 1, 1), 'input_alpha')
+        alpha = None
         r = self._transform(x_var, alpha, False)
         x_ftr_vgg = self._encode_vgg(x_var, False)
         r_ftr_vgg = self._encode_vgg(r, True)
@@ -138,10 +139,13 @@ class Model:
             y_gram = _gram_matrix(yf)
             r_gram = _gram_matrix(rf)
             x_gram = _gram_matrix(xf)
-            style_loss += tf.reduce_sum(alpha * tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
-                                                                                                 tf.float32)
-            style_loss += tf.reduce_sum((1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2))) / tf.cast(tf.size(x_gram),
-                                                                                                       tf.float32)
+            style_loss += tf.reduce_sum(tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
+                                                                                                     tf.float32)
+
+            # style_loss += tf.reduce_sum(alpha * tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
+            #                                                                                     tf.float32)
+            # style_loss += tf.reduce_sum((1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2))) / tf.cast(tf.size(x_gram),
+            #                                                                                           tf.float32)
 
         y_tv = tf.nn.l2_loss(r[:, 1:, :, :] - r[:, :-1, :, :]) / tf.cast(tf.size(r[:, 1:, :, :]), tf.float32)
         x_tv = tf.nn.l2_loss(r[:, :, 1:, :] - r[:, :, :-1, :]) / tf.cast(tf.size(r[:, :, 1:, :]), tf.float32)
@@ -161,7 +165,7 @@ class Model:
         self.test = tf.identity(r, 'output')
         self.args = {
             'x': x_var,
-            'alpha': alpha
+            # 'alpha': alpha
         }
         self.saver = tf.train.Saver()
 
