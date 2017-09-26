@@ -18,6 +18,10 @@ def conv_block(input, alpha, name, features, filter_size, stride, relu=True, nor
         conv = tf.nn.conv2d(input, weights, (1, stride, stride, 1), 'SAME')
         if norm:
             conv = _cond_instance_norm(conv, alpha, name+'/norm')
+        else:
+            bias = tf.get_variable('b',
+                                    initializer=tf.zeros(features, tf.float32))
+            conv = tf.nn.bias_add(conv, bias)
         if relu:
             conv = tf.nn.relu(conv)
     return conv

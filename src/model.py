@@ -66,7 +66,7 @@ class Model:
         x = _preprocess(x)
         if alpha is None:
             alpha = np.ones(x.shape[0], dtype=np.float32)
-        alpha = alpha.reshape((-1, 1, 1, 1))
+        alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
             self.args['alpha']: alpha
@@ -76,7 +76,7 @@ class Model:
 
     def train(self, x, alpha):
         x = _preprocess(x)
-        alpha = alpha.reshape((-1, 1, 1, 1))
+        alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
             self.args['alpha']: alpha,
@@ -140,7 +140,7 @@ class Model:
             x_gram = _gram_matrix(xf)
             style_loss += tf.reduce_sum(alpha * tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
                                                                                                  tf.float32)
-            style_loss += tf.reduce_sum((1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
+            style_loss += tf.reduce_sum((1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2))) / tf.cast(tf.size(x_gram),
                                                                                                        tf.float32)
 
         y_tv = tf.nn.l2_loss(r[:, 1:, :, :] - r[:, :-1, :, :]) / tf.cast(tf.size(r[:, 1:, :, :]), tf.float32)

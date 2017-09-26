@@ -43,7 +43,6 @@ def train(args):
                 cnt += 1
                 content_batch = content_bg.get_batch()
                 alpha = np.random.uniform(0, 1, batch_size)
-                alpha = np.ones_like(alpha)
                 t -= time()
                 loss = model.train(content_batch, alpha) + loss
                 t += time()
@@ -51,13 +50,14 @@ def train(args):
             print('epoch:', epoch)
             print('loss:', loss / cnt)
             print('train time:', t)
-            alpha = np.random.uniform(0, 1, batch_size)
-            alpha = np.ones_like(alpha)
             content_batch = content_bg.get_batch()
+            alpha = [0., .25, .5, .75, 1.] * 5
             samples_0 = content_batch
-            samples_1 = model.style(content_batch, alpha)
-            samples = np.concatenate([samples_0, samples_1], 2)
-            samples = np.concatenate(samples, axis=0)
+            samples_1 = model.style(content_batch.repeat(5, 0), alpha)
+            samples_1 = samples_1.reshape((batch_size, 5, 256, 256, 3))
+            samples = np.concatenate([samples_0[:, np.newaxis], samples_1], 1)
+            samples = np.concatenate(samples, 1)
+            samples = np.concatenate(samples, 1)
             imsave(args.output + '/samples/%04d.png' % epoch, samples)
             model.save(args.output + '/model.pkl')
 
