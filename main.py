@@ -51,12 +51,10 @@ def train(args):
             print('loss:', loss / cnt)
             print('train time:', t)
             content_batch = content_bg.get_batch()
-            alpha = [0., .25, .5, .75, 1.] * 5
-            samples_0 = content_batch
-            samples_1 = model.style(content_batch.repeat(5, 0), alpha)
-            samples_1 = samples_1.reshape((batch_size, 5, 256, 256, 3))
-            samples = np.concatenate([samples_0[:, np.newaxis], samples_1], 1)
-            samples = np.concatenate(samples, 1)
+            samples_1 = [content_batch]
+            for alpha in [0., .25, .5, .75, 1.]:
+                samples_1.append(model.style(content_batch, [alpha] * batch_size))
+            samples = np.concatenate(samples_1, 1)
             samples = np.concatenate(samples, 1)
             imsave(args.output + '/samples/%04d.png' % epoch, samples)
             model.save(args.output + '/model.pkl')
