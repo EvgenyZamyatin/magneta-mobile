@@ -65,7 +65,6 @@ if __name__ == '__main__':
     train_parser.add_argument("--content-images", "-ci", type=str, required=True, help='Path to imgs')
     train_parser.add_argument("--style-image", "-si", type=str, required=True, help='Path to img')
     train_parser.add_argument("--vgg-path", "-vgg", type=str, required=True, help='Path to vgg')
-    train_parser.add_argument("--mob-path", "-mob", type=str, required=True, help='Path to mob')
     train_parser.add_argument("--content-weight", type=float, default=1)
     train_parser.add_argument("--style-weight", type=float, default=1)
     train_parser.add_argument("--tv-weight", type=float, default=1)
