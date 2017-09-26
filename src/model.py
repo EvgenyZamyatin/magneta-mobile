@@ -66,6 +66,7 @@ class Model:
         x = _preprocess(x)
         if alpha is None:
             alpha = np.ones(x.shape[0], dtype=np.float32)
+        alpha = alpha.reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
             self.args['alpha']: alpha
@@ -75,6 +76,7 @@ class Model:
 
     def train(self, x, alpha):
         x = _preprocess(x)
+        alpha = alpha.reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
             self.args['alpha']: alpha,
