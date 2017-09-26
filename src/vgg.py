@@ -5,7 +5,7 @@ import numpy as np
 import scipy.io
 import pickle
 from h5py import File
-from src.helpers import pool_layer, conv_layer
+from src.helpers import pool_layer
 
 
 _MEAN_PIXEL = tf.constant(np.array([103.939, 116.779, 123.68]).reshape((1, 1, 1, 3)), dtype=tf.float32)
