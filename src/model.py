@@ -138,9 +138,9 @@ class Model:
             y_gram = _gram_matrix(yf)
             r_gram = _gram_matrix(rf)
             x_gram = _gram_matrix(xf)
-            style_loss += alpha * tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2, 3)) / tf.cast(tf.size(y_gram),
+            style_loss += alpha * tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2)) / tf.cast(tf.size(y_gram),
                                                                                                  tf.float32)
-            style_loss += (1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2, 3)) / tf.cast(tf.size(y_gram),
+            style_loss += (1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2)) / tf.cast(tf.size(y_gram),
                                                                                                        tf.float32)
 
         y_tv = tf.nn.l2_loss(r[:, 1:, :, :] - r[:, :-1, :, :]) / tf.cast(tf.size(r[:, 1:, :, :]), tf.float32)
