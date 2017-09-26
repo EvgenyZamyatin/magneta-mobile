@@ -2,6 +2,12 @@ import tensorflow as tf
 from tensorflow.contrib import slim as slim
 
 
+def conv_layer(input, weights, bias, pad='SAME'):
+    conv = tf.nn.conv2d(input, weights, strides=(1, 1, 1, 1),
+                        padding=pad)
+    return tf.nn.bias_add(conv, bias)
+
+
 def conv_block(input, alpha, name, features, filter_size, stride, relu=True, norm=True, **kwargs):
     with tf.variable_scope(name):
         _, rows, cols, in_channels = [i.value for i in input.get_shape()]
