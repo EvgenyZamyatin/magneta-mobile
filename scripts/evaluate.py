@@ -95,4 +95,4 @@ if __name__ == "__main__":
     if args.magneta:
         evaluate_graph_magneta(args.graph, args.output, args.x, args.a)
     else:
-        evaluate_graph(args.graph, args.output, args.x.y, args.a)
+        evaluate_graph(args.graph, args.output, args.x, args.a)
