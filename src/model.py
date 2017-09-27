@@ -116,6 +116,7 @@ class Model:
 
         r_style_f = [r_ftr_vgg[i] for i in STYLE_LAYERS_VGG]
         x_style_f = [x_ftr_vgg[i] for i in STYLE_LAYERS_VGG]
+
         with self:
             y_style_f = self.sess.run([x_ftr_vgg[i] for i in STYLE_LAYERS_VGG],
                                       {x_var: self.style_image[np.newaxis]})
