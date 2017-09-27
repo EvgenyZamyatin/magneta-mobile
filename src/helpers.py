@@ -8,7 +8,7 @@ def conv_layer(input, weights, bias, pad='SAME'):
     return tf.nn.bias_add(conv, bias)
 
 
-def conv_block(input, alpha, name, features, filter_size, stride, relu=True, norm=True, **kwargs):
+def conv_block(input, name, features, filter_size, stride, relu=True, norm=True, **kwargs):
     with tf.variable_scope(name):
         _, rows, cols, in_channels = [i.value for i in input.get_shape()]
         weights = tf.get_variable('W',
@@ -17,29 +17,28 @@ def conv_block(input, alpha, name, features, filter_size, stride, relu=True, nor
 
         conv = tf.nn.conv2d(input, weights, (1, stride, stride, 1), 'SAME')
         if norm:
-            conv = _cond_instance_norm(conv, alpha, name+'/norm')
+            conv = _instance_norm(conv, name+'/norm')
         else:
-            bias = tf.get_variable('b',
-                                    initializer=tf.zeros(features, tf.float32))
+            bias = tf.get_variable('b', initializer=tf.zeros(features, tf.float32))
             conv = tf.nn.bias_add(conv, bias)
         if relu:
             conv = tf.nn.relu(conv)
     return conv
 
 
-def upsampling(input_, alpha, name, features, filter_size, stride, relu=True, norm=True):
+def upsampling(input_, name, features, filter_size, stride, relu=True, norm=True):
     with tf.variable_scope(name):
         _, height, width, _ = [s.value for s in input_.get_shape()]
         upsampled_input = tf.image.resize_nearest_neighbor(
         input_, [stride * height, stride * width])
-        return conv_block(upsampled_input, alpha, name + '/conv', features, filter_size, 1, relu, norm)
+        return conv_block(upsampled_input, name + '/conv', features, filter_size, 1, relu, norm)
 
 
-def residual_block(input_, alpha, name, kernel_size):
+def residual_block(input_, name, kernel_size):
     with tf.variable_scope(name):
         num_outputs = input_.get_shape()[-1].value
-        h_1 = conv_block(input_, alpha, name + '/conv1', num_outputs, kernel_size, 1)
-        h_2 = conv_block(h_1, alpha, name + '/conv2', num_outputs, kernel_size, 1)
+        h_1 = conv_block(input_, name + '/conv1', num_outputs, kernel_size, 1)
+        h_2 = conv_block(h_1, name + '/conv2', num_outputs, kernel_size, 1, False, False)
         return input_ + h_2
 
 
@@ -49,7 +48,7 @@ def moments(x, axis):
     return mean, var
 
 
-def _cond_instance_norm(x, alpha, name):
+def _instance_norm(x, name):
     with tf.variable_scope(name):
         _, rows, cols, in_channels = [i.value for i in x.get_shape()]
         mu = tf.get_variable('mu',
@@ -97,7 +96,6 @@ def conv_wn_block_mob(input, name, features, filter_size, relu=True, sep_conv=Tr
             conv = tf.nn.relu(conv)
 
     return conv
-"""
 
 
 def nearest_up_sampling(net, scale=2):
@@ -108,3 +106,4 @@ def nearest_up_sampling(net, scale=2):
 def pool_layer(input):
     return tf.nn.max_pool(input, ksize=(1, 2, 2, 1), strides=(1, 2, 2, 1),
                           padding='SAME')
+"""

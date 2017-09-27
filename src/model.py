@@ -62,11 +62,11 @@ class Model:
         self.sess = None
         self.writer = None
 
-    def style(self, x, alpha=None):
+    def style(self, x, alpha):
         x = _preprocess(x)
-        if alpha is None:
-            alpha = np.ones(x.shape[0], dtype=np.float32)
-        alpha = np.array(alpha).reshape((-1, 1, 1, 1))
+        # if alpha is None:
+        #    alpha = np.ones(x.shape[0], dtype=np.float32)
+        # alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
             # self.args['alpha']: alpha
@@ -76,7 +76,7 @@ class Model:
 
     def train(self, x, alpha):
         x = _preprocess(x)
-        alpha = np.array(alpha).reshape((-1, 1, 1, 1))
+        # alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
             # self.args['alpha']: alpha,
@@ -92,23 +92,21 @@ class Model:
         self._encode_vgg = lambda x, reuse: vgg_net(vgg_path, x, reuse)
 
     def _build_transformer(self):
-        def transform(input_, alpha, reuse):
+        def transform(input_, reuse):
             with tf.variable_scope('transformer', reuse=reuse):
-                h = conv_block(input_, alpha, 'conv1', 32, 9, 1)
-                h = conv_block(h, alpha, 'conv2', 64, 3, 2)
-                h = conv_block(h, alpha, 'conv3', 128, 3, 2)
+                h = conv_block(input_, 'conv1', 32, 9, 1)
+                h = conv_block(h, 'conv2', 64, 3, 2)
+                h = conv_block(h, 'conv3', 128, 3, 2)
 
-                h = residual_block(h, alpha, 'residual1', 3)
-                h = residual_block(h, alpha, 'residual2', 3)
-                h = residual_block(h, alpha, 'residual3', 3)
-                h = residual_block(h, alpha, 'residual4', 3)
-                h = residual_block(h, alpha, 'residual5', 3)
+                h = residual_block(h, 'residual1', 3)
+                h = residual_block(h, 'residual2', 3)
+                h = residual_block(h, 'residual3', 3)
+                h = residual_block(h, 'residual4', 3)
+                h = residual_block(h, 'residual5', 3)
 
-                h = upsampling(h, alpha, 'uconv1', 64, 3, 2)
-
-                h = upsampling(h, alpha, 'uconv2', 32, 3, 2)
-
-                h = upsampling(h, alpha, 'uconv3', 3, 9, 1, False, False)
+                h = upsampling(h, 'uconv1', 64, 3, 2)
+                h = upsampling(h, 'uconv2', 32, 3, 2)
+                h = upsampling(h, 'uconv3', 3, 9, 1, False, False)
                 h = tf.nn.tanh(h) * 150 + 255 / 2
             return h
 
@@ -116,9 +114,9 @@ class Model:
 
     def _build_fn(self):
         x_var = tf.placeholder(tf.float32, (None, 256, 256, 3), 'input_x')
-        alpha = tf.placeholder(tf.float32, (None, 1, 1, 1), 'input_alpha')
-        alpha = None
-        r = self._transform(x_var, alpha, False)
+        # alpha = tf.placeholder(tf.float32, (None, 1, 1, 1), 'input_alpha')
+        # alpha = None
+        r = self._transform(x_var, False)
         x_ftr_vgg = self._encode_vgg(x_var, False)
         r_ftr_vgg = self._encode_vgg(r, True)
 
@@ -156,7 +154,7 @@ class Model:
 
         tf.summary.scalar("content_loss", losses[0])
         tf.summary.scalar("style_loss", losses[1])
-        tf.summary.scalar("tv_loss", losses[1])
+        tf.summary.scalar("tv_loss", losses[2])
         self.summary_op = tf.summary.merge_all()
         self.losses = losses
 
