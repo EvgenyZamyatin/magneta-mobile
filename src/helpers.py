@@ -57,7 +57,7 @@ def conv_block_mob(input, name, features, filter_size, stride, relu=True, norm=T
             conv = tf.nn.depthwise_conv2d(conv, depthwise_weights, (1, stride, stride, 1), 'VALID')
             conv = tf.nn.conv2d(conv, pointwise_weights, (1, 1, 1, 1), 'VALID')
         else:
-            conv = tf.nn.conv2d(conv, weights, (1, 1, 1, 1), 'VALID')
+            conv = tf.nn.conv2d(conv, weights, (1, stride, stride, 1), 'VALID')
         # conv /= normalization
 
         if norm:
