@@ -131,7 +131,6 @@ class Model:
         y_tv = tf.nn.l2_loss(r[:, 1:, :, :] - r[:, :-1, :, :]) / tf.cast(tf.size(r[:, 1:, :, :]), tf.float32)
         x_tv = tf.nn.l2_loss(r[:, :, 1:, :] - r[:, :, :-1, :]) / tf.cast(tf.size(r[:, :, 1:, :]), tf.float32)
         tv_loss = (x_tv + y_tv)
-
         losses = [self.content_weight * content_loss, self.style_weight * style_loss, self.tv_weight * tv_loss]
         loss = sum(losses)
 
