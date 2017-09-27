@@ -36,7 +36,7 @@ class Model:
         self.content_weight = content_weight
         self.learning_rate = learning_rate
         self.log_path = log_path
-        self.style_image = style_image
+        self.style_image = _preprocess(style_image)
         self.sess = None
         self.weights = None
         self.writer = None
@@ -62,24 +62,18 @@ class Model:
         self.sess = None
         self.writer = None
 
-    def style(self, x, alpha):
+    def style(self, x, **kwargs):
         x = _preprocess(x)
-        # if alpha is None:
-        #    alpha = np.ones(x.shape[0], dtype=np.float32)
-        # alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
-            # self.args['alpha']: alpha
         }
         res = self.sess.run(self.test, feed_dict=args)
         return _unprocess(res)
 
-    def train(self, x, alpha):
+    def train(self, x, **kwargs):
         x = _preprocess(x)
-        # alpha = np.array(alpha).reshape((-1, 1, 1, 1))
         args = {
             self.args['x']: x,
-            # self.args['alpha']: alpha,
         }
         _, summary, cl, sl, tl = self.sess.run([self.train_step, self.summary_op] + self.losses, feed_dict=args)
         res = np.array([cl, sl, tl])
@@ -109,13 +103,10 @@ class Model:
                 h = upsampling(h, 'uconv3', 3, 9, 1, False, False)
                 h = tf.nn.tanh(h) * 150 + 255 / 2
             return h
-
         self._transform = transform
 
     def _build_fn(self):
         x_var = tf.placeholder(tf.float32, (None, 256, 256, 3), 'input_x')
-        # alpha = tf.placeholder(tf.float32, (None, 1, 1, 1), 'input_alpha')
-        # alpha = None
         r = self._transform(x_var, False)
         x_ftr_vgg = self._encode_vgg(x_var, False)
         r_ftr_vgg = self._encode_vgg(r, True)
@@ -136,8 +127,7 @@ class Model:
         for _, yf, rf in zip(x_style_f, y_style_f, r_style_f):
             y_gram = _gram_matrix(yf)
             r_gram = _gram_matrix(rf)
-            style_loss += tf.reduce_sum(tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
-                                                                                                     tf.float32)
+            style_loss += tf.nn.l2_loss(y_gram - r_gram) / tf.cast(tf.size(y_gram), tf.float32)
         y_tv = tf.nn.l2_loss(r[:, 1:, :, :] - r[:, :-1, :, :]) / tf.cast(tf.size(r[:, 1:, :, :]), tf.float32)
         x_tv = tf.nn.l2_loss(r[:, :, 1:, :] - r[:, :, :-1, :]) / tf.cast(tf.size(r[:, :, 1:, :]), tf.float32)
         tv_loss = (x_tv + y_tv)

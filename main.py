@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from batch_generator import BatchGenerator
 from src.model import Model
+from utils import load_image_center_crop
 
 sys.setrecursionlimit(100000)
 np.set_printoptions(suppress=True)
@@ -23,8 +24,8 @@ def train(args):
         out.write(str(args) + os.linesep)
     print('compile')
 
-    style_img = imread(args.style_image)
-    style_img = imresize(style_img, (256, 256))
+    image_loader = lambda x: load_image_center_crop(x, 256, True)
+    style_img = image_loader(args.style_image)
 
     model = Model(args.content_weight, args.style_weight, args.tv_weight, args.learning_rate, style_img, args.vgg_path,
                   args.output + '/log')
@@ -33,7 +34,7 @@ def train(args):
     batch_size = args.batch_size
     num_batches = args.epoch_count * args.batch_count + args.epoch_count
     with model, \
-            BatchGenerator(args.content_images, num_batches, batch_size, 512, 256, num_proc=4) as content_bg:
+            BatchGenerator(args.content_images, image_loader, num_batches, batch_size, num_proc=4) as content_bg:
         print('start train')
         for epoch in range(args.start_epoch, args.epoch_count):
             loss = 0
@@ -44,7 +45,7 @@ def train(args):
                 content_batch = content_bg.get_batch()
                 alpha = np.random.uniform(0, 1, batch_size)
                 t -= time()
-                loss = model.train(content_batch, alpha) + loss
+                loss = model.train(content_batch, alpha=alpha) + loss
                 t += time()
 
             print('epoch:', epoch)
@@ -52,8 +53,8 @@ def train(args):
             print('train time:', t)
             content_batch = content_bg.get_batch()
             samples_1 = [content_batch]
-            for alpha in [0., .25, .5, .75, 1.]:
-                samples_1.append(model.style(content_batch, [alpha] * batch_size))
+            for alpha in [1.]:#[0., .25, .5, .75, 1.]:
+                samples_1.append(model.style(content_batch, alpha=[alpha] * batch_size))
             samples = np.concatenate(samples_1, 1)
             samples = np.concatenate(samples, 1)
             imsave(args.output + '/samples/%04d.png' % epoch, samples)

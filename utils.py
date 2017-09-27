@@ -59,3 +59,29 @@ def load_image(src, resize=512, random_crop=256):
         print(src)
         raise e
     return img
+
+
+def load_image_center_crop(src, size=None, center_crop=False):
+    img = imread(src, mode="RGB")
+    if center_crop:
+        cur_shape = img.shape[:2]
+        shorter_side = min(cur_shape)
+        longer_side_xs = max(cur_shape) - shorter_side
+        longer_side_start = int(longer_side_xs / 2.)
+        longer_side_slice = slice(longer_side_start, longer_side_start + shorter_side)
+        if shorter_side == cur_shape[0]:
+            img = img[:, longer_side_slice, :]
+        else:
+            img = img[longer_side_slice, :, :]
+
+    if size is not None:
+        cur_shape = img.shape[:2]
+        shorter_side = min(cur_shape)
+        aspect = max(cur_shape) / float(shorter_side)
+        new_shorter_side = int(size / aspect)
+        if shorter_side == cur_shape[0]:
+            new_shape = (new_shorter_side, size)
+        else:
+            new_shape = (size, new_shorter_side)
+        img = imresize(img, new_shape)
+    return img

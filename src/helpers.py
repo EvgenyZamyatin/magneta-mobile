@@ -22,11 +22,13 @@ def conv_block(input, name, features, filter_size, stride, relu=True, norm=True,
         pad = filter_size // 2
         input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
         conv = tf.nn.conv2d(input, weights, (1, stride, stride, 1), 'VALID')
+
         if norm:
             conv = _instance_norm(conv, name+'/norm')
         else:
             bias = tf.get_variable('b', initializer=tf.zeros(features, tf.float32))
             conv = tf.nn.bias_add(conv, bias)
+
         if relu:
             conv = tf.nn.relu(conv)
     return conv
@@ -35,8 +37,7 @@ def conv_block(input, name, features, filter_size, stride, relu=True, norm=True,
 def upsampling(input_, name, features, filter_size, stride, relu=True, norm=True):
     with tf.variable_scope(name):
         _, height, width, _ = [s.value for s in input_.get_shape()]
-        upsampled_input = tf.image.resize_nearest_neighbor(
-        input_, [stride * height, stride * width])
+        upsampled_input = tf.image.resize_nearest_neighbor(input_, [stride * height, stride * width])
         return conv_block(upsampled_input, name + '/conv', features, filter_size, 1, relu, norm)
 
 
@@ -61,14 +62,11 @@ def _instance_norm(x, name):
                              initializer=tf.zeros(in_channels, tf.float32))
         sigma = tf.get_variable('sigma',
                                 initializer=tf.ones(in_channels, tf.float32))
-
         x_mu, x_sigma_sq = moments(x, (1, 2))
         epsilon = 1e-5
         x_normalized = (x - x_mu) / tf.sqrt(x_sigma_sq + epsilon)
         y = x_normalized * sigma + mu
         return y
-        #result = x * (1 - alpha) + y * alpha
-        #return result
 
 
 """
