@@ -116,8 +116,10 @@ def _instance_norm(x, name):
                                 initializer=tf.ones(in_channels, tf.float32))
         x_mu, x_sigma_sq = moments(x, (1, 2))
         epsilon = 1e-5
-        x_normalized = (x - x_mu) / tf.sqrt(x_sigma_sq + epsilon)
-        y = x_normalized * sigma + mu
+        y = tf.nn.batch_normalization(
+            x, x_mu, x_sigma_sq, mu, sigma, epsilon)
+        #x_normalized = (x - x_mu) / tf.sqrt(x_sigma_sq + epsilon)
+        #y = x_normalized * sigma + mu
         return y
 
 
