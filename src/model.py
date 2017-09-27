@@ -88,7 +88,7 @@ class Model:
     def _build_transformer(self):
         def transform(input_, reuse):
             with tf.variable_scope('transformer', reuse=reuse):
-                h = conv_block(input_, 'conv1', 32, 9, 1)
+                h = conv_block(input_, 'conv1', 32, 3, 1)
                 h = conv_block(h, 'conv2', 64, 3, 2)
                 h = conv_block(h, 'conv3', 128, 3, 2)
 
@@ -100,7 +100,7 @@ class Model:
 
                 h = upsampling(h, 'uconv1', 64, 3, 2)
                 h = upsampling(h, 'uconv2', 32, 3, 2)
-                h = upsampling(h, 'uconv3', 3, 9, 1, False, False)
+                h = upsampling(h, 'uconv3', 3, 3, 1, False, False)
                 h = tf.nn.tanh(h) * 150 + 255 / 2
             return h
         self._transform = transform

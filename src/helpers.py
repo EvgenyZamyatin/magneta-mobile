@@ -69,8 +69,7 @@ def _instance_norm(x, name):
         return y
 
 
-"""
-def conv_wn_block_mob(input, name, features, filter_size, relu=True, sep_conv=True):
+def conv_wn_block_mob(input, name, features, filter_size, relu=True, norm=True, sep_conv=True):
     with tf.variable_scope(name):
         _, rows, cols, in_channels = [i.value for i in input.get_shape()]
 
@@ -83,8 +82,7 @@ def conv_wn_block_mob(input, name, features, filter_size, relu=True, sep_conv=Tr
                                             initializer=tf.contrib.layers.xavier_initializer())
 
         weights = tf.einsum('abcd,efcg->abcg', depthwise_weights, pointwise_weights)
-        normalization = tf.sqrt(tf.reduce_sum(tf.square(weights), (0, 1, 2), True)) + 1e-5
-        bias = tf.get_variable('b', initializer=tf.zeros(features))
+        # normalization = tf.sqrt(tf.reduce_sum(tf.square(weights), (0, 1, 2), True) + 1e-5)
 
         conv = input
         if sep_conv:
@@ -93,18 +91,21 @@ def conv_wn_block_mob(input, name, features, filter_size, relu=True, sep_conv=Tr
         else:
             conv = tf.nn.conv2d(conv, weights, (1, 1, 1, 1), 'SAME')
 
-        conv /= normalization
-        conv = tf.nn.bias_add(conv, bias)
+        # conv /= normalization
+        if norm:
+            conv = _instance_norm(conv, name+'/norm')
+        else:
+            bias = tf.get_variable('b', initializer=tf.zeros(features))
+            conv = tf.nn.bias_add(conv, bias)
 
         if relu:
             conv = tf.nn.relu(conv)
-
     return conv
 
 
+"""
 def nearest_up_sampling(net, scale=2):
     net = tf.image.resize_nearest_neighbor(net, (net.shape[1].value * scale, net.shape[2].value * scale))
     return net
-
 
 """
