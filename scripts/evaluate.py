@@ -12,7 +12,7 @@ import os
 
 from tensorflow.python.client import timeline
 
-from utils import load_image
+from utils import load_image_center_crop
 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
@@ -59,7 +59,7 @@ def evaluate_graph_magneta(graph_file_name, output, x, alpha):
         image_buffer_input_x = graph.get_tensor_by_name('input:0')
         image_buffer_input_style_num = graph.get_tensor_by_name('style_num:0')
         result = graph.get_tensor_by_name('transformer/expand/conv3/conv/Sigmoid:0')
-    x = load_image(x, resize=256, random_crop=256).astype('float32')
+    x = load_image_center_crop(x, 256, True).astype('float32')
     style_num = [1] + [0] * 25
     with tf.device('/cpu'), tf.Session(graph=graph) as sess:
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
