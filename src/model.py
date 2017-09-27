@@ -86,21 +86,21 @@ class Model:
         self._encode_vgg = lambda x, reuse: vgg_net(vgg_path, x, reuse)
 
     def _build_transformer(self):
-        def transform(input_, reuse):
+        def transform(input_, reuse, sep_conv):
             with tf.variable_scope('transformer', reuse=reuse):
-                h = conv_block(input_, 'conv1', 32, 3, 1)
-                h = conv_block(h, 'conv2', 64, 3, 2)
-                h = conv_block(h, 'conv3', 128, 3, 2)
+                h = conv_block_mob(input_, 'conv1', 32, 3, 1, sep_conv=sep_conv)
+                h = conv_block_mob(h, 'conv2', 64, 3, 2, sep_conv=sep_conv)
+                h = conv_block_mob(h, 'conv3', 128, 3, 2, sep_conv=sep_conv)
 
-                h = residual_block(h, 'residual1', 3)
-                h = residual_block(h, 'residual2', 3)
-                h = residual_block(h, 'residual3', 3)
-                h = residual_block(h, 'residual4', 3)
-                h = residual_block(h, 'residual5', 3)
+                h = residual_block_mob(h, 'residual1', 3, sep_conv=sep_conv)
+                h = residual_block_mob(h, 'residual2', 3, sep_conv=sep_conv)
+                h = residual_block_mob(h, 'residual3', 3, sep_conv=sep_conv)
+                h = residual_block_mob(h, 'residual4', 3, sep_conv=sep_conv)
+                h = residual_block_mob(h, 'residual5', 3, sep_conv=sep_conv)
 
-                h = upsampling(h, 'uconv1', 64, 3, 2)
-                h = upsampling(h, 'uconv2', 32, 3, 2)
-                h = upsampling(h, 'uconv3', 3, 3, 1, False, False)
+                h = upsampling_mob(h, 'uconv1', 64, 3, 2, sep_conv=sep_conv)
+                h = upsampling_mob(h, 'uconv2', 32, 3, 2, sep_conv=sep_conv)
+                h = upsampling_mob(h, 'uconv3', 3, 3, 1, False, False, sep_conv=sep_conv)
                 h = tf.nn.tanh(h) * 150 + 255 / 2
             return h
         self._transform = transform

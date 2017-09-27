@@ -34,18 +34,70 @@ def conv_block(input, name, features, filter_size, stride, relu=True, norm=True,
     return conv
 
 
-def upsampling(input_, name, features, filter_size, stride, relu=True, norm=True):
+def conv_block_mob(input, name, features, filter_size, stride, relu=True, norm=True, sep_conv=True, **kwargs):
+    with tf.variable_scope(name):
+        _, rows, cols, in_channels = [i.value for i in input.get_shape()]
+
+        depthwise_weights = tf.get_variable('W_depth',
+                                            shape=[filter_size, filter_size, in_channels, 1],
+                                            initializer=tf.contrib.layers.xavier_initializer())
+
+        pointwise_weights = tf.get_variable('W_point',
+                                            shape=[1, 1, in_channels, features],
+                                            initializer=tf.contrib.layers.xavier_initializer())
+
+        weights = tf.einsum('abcd,efcg->abcg', depthwise_weights, pointwise_weights)
+        # normalization = tf.sqrt(tf.reduce_sum(tf.square(weights), (0, 1, 2), True) + 1e-5)
+
+        pad = filter_size // 2
+        input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
+
+        conv = input
+        if sep_conv:
+            conv = tf.nn.depthwise_conv2d(conv, depthwise_weights, (1, stride, stride, 1), 'VALID')
+            conv = tf.nn.conv2d(conv, pointwise_weights, (1, 1, 1, 1), 'VALID')
+        else:
+            conv = tf.nn.conv2d(conv, weights, (1, 1, 1, 1), 'VALID')
+        # conv /= normalization
+
+        if norm:
+            conv = _instance_norm(conv, name+'/norm')
+        else:
+            bias = tf.get_variable('b', initializer=tf.zeros(features))
+            conv = tf.nn.bias_add(conv, bias)
+
+        if relu:
+            conv = tf.nn.relu(conv)
+    return conv
+
+
+def upsampling(input_, name, features, filter_size, stride, relu=True, norm=True, **kwargs):
     with tf.variable_scope(name):
         _, height, width, _ = [s.value for s in input_.get_shape()]
         upsampled_input = tf.image.resize_nearest_neighbor(input_, [stride * height, stride * width])
         return conv_block(upsampled_input, name + '/conv', features, filter_size, 1, relu, norm)
 
 
-def residual_block(input_, name, kernel_size):
+def upsampling_mob(input_, name, features, filter_size, stride, relu=True, norm=True, sep_conv=True, **kwargs):
+    with tf.variable_scope(name):
+        _, height, width, _ = [s.value for s in input_.get_shape()]
+        upsampled_input = tf.image.resize_nearest_neighbor(input_, [stride * height, stride * width])
+        return conv_block_mob(upsampled_input, name + '/conv', features, filter_size, 1, relu, norm, sep_conv)
+
+
+def residual_block(input_, name, kernel_size, **kwargs):
     with tf.variable_scope(name):
         num_outputs = input_.get_shape()[-1].value
         h_1 = conv_block(input_, name + '/conv1', num_outputs, kernel_size, 1)
         h_2 = conv_block(h_1, name + '/conv2', num_outputs, kernel_size, 1, False, False)
+        return input_ + h_2
+
+
+def residual_block_mob(input_, name, kernel_size, sep_conv=True, **kwargs):
+    with tf.variable_scope(name):
+        num_outputs = input_.get_shape()[-1].value
+        h_1 = conv_block_mob(input_, name + '/conv1', num_outputs, kernel_size, 1, True, True, sep_conv)
+        h_2 = conv_block_mob(h_1, name + '/conv2', num_outputs, kernel_size, 1, False, False, sep_conv)
         return input_ + h_2
 
 
@@ -67,40 +119,6 @@ def _instance_norm(x, name):
         x_normalized = (x - x_mu) / tf.sqrt(x_sigma_sq + epsilon)
         y = x_normalized * sigma + mu
         return y
-
-
-def conv_wn_block_mob(input, name, features, filter_size, relu=True, norm=True, sep_conv=True):
-    with tf.variable_scope(name):
-        _, rows, cols, in_channels = [i.value for i in input.get_shape()]
-
-        depthwise_weights = tf.get_variable('W_depth',
-                                            shape=[filter_size, filter_size, in_channels, 1],
-                                            initializer=tf.contrib.layers.xavier_initializer())
-
-        pointwise_weights = tf.get_variable('W_point',
-                                            shape=[1, 1, in_channels, features],
-                                            initializer=tf.contrib.layers.xavier_initializer())
-
-        weights = tf.einsum('abcd,efcg->abcg', depthwise_weights, pointwise_weights)
-        # normalization = tf.sqrt(tf.reduce_sum(tf.square(weights), (0, 1, 2), True) + 1e-5)
-
-        conv = input
-        if sep_conv:
-            conv = tf.nn.depthwise_conv2d(conv, depthwise_weights, (1, 1, 1, 1), 'SAME')
-            conv = tf.nn.conv2d(conv, pointwise_weights, (1, 1, 1, 1), 'SAME')
-        else:
-            conv = tf.nn.conv2d(conv, weights, (1, 1, 1, 1), 'SAME')
-
-        # conv /= normalization
-        if norm:
-            conv = _instance_norm(conv, name+'/norm')
-        else:
-            bias = tf.get_variable('b', initializer=tf.zeros(features))
-            conv = tf.nn.bias_add(conv, bias)
-
-        if relu:
-            conv = tf.nn.relu(conv)
-    return conv
 
 
 """
