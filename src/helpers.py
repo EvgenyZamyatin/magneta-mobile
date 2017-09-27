@@ -19,8 +19,9 @@ def conv_block(input, name, features, filter_size, stride, relu=True, norm=True,
         weights = tf.get_variable('W',
                                   shape=[filter_size, filter_size, in_channels, features],
                                   initializer=tf.contrib.layers.xavier_initializer())
-
-        conv = tf.nn.conv2d(input, weights, (1, stride, stride, 1), 'SAME')
+        pad = filter_size // 2
+        input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
+        conv = tf.nn.conv2d(input, weights, (1, stride, stride, 1), 'VALID')
         if norm:
             conv = _instance_norm(conv, name+'/norm')
         else:

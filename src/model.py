@@ -133,18 +133,11 @@ class Model:
         content_loss = tf.nn.l2_loss(fr_vgg - fx_vgg) / tf.cast(tf.size(fr_vgg), tf.float32)
 
         style_loss = 0
-        for xf, yf, rf in zip(x_style_f, y_style_f, r_style_f):
+        for _, yf, rf in zip(x_style_f, y_style_f, r_style_f):
             y_gram = _gram_matrix(yf)
             r_gram = _gram_matrix(rf)
-            x_gram = _gram_matrix(xf)
             style_loss += tf.reduce_sum(tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
                                                                                                      tf.float32)
-
-            # style_loss += tf.reduce_sum(alpha * tf.reduce_sum(tf.square(y_gram - r_gram), (1, 2))) / tf.cast(tf.size(y_gram),
-            #                                                                                     tf.float32)
-            # style_loss += tf.reduce_sum((1 - alpha) * tf.reduce_sum(tf.square(x_gram - r_gram), (1, 2))) / tf.cast(tf.size(x_gram),
-            #                                                                                           tf.float32)
-
         y_tv = tf.nn.l2_loss(r[:, 1:, :, :] - r[:, :-1, :, :]) / tf.cast(tf.size(r[:, 1:, :, :]), tf.float32)
         x_tv = tf.nn.l2_loss(r[:, :, 1:, :] - r[:, :, :-1, :]) / tf.cast(tf.size(r[:, :, 1:, :]), tf.float32)
         tv_loss = (x_tv + y_tv)
@@ -163,7 +156,6 @@ class Model:
         self.test = tf.identity(r, 'output')
         self.args = {
             'x': x_var,
-            # 'alpha': alpha
         }
         self.saver = tf.train.Saver()
 
