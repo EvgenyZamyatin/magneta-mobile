@@ -19,9 +19,9 @@ def conv_block(input, name, features, filter_size, stride, relu=True, norm=True,
         weights = tf.get_variable('W',
                                   shape=[filter_size, filter_size, in_channels, features],
                                   initializer=tf.contrib.layers.xavier_initializer())
-        pad = filter_size // 2
-        input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
-        conv = tf.nn.conv2d(input, weights, (1, stride, stride, 1), 'VALID')
+        #pad = filter_size // 2
+        #input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
+        conv = tf.nn.conv2d(input, weights, (1, stride, stride, 1), 'SAME')
 
         if norm:
             conv = _instance_norm(conv, name+'/norm')
@@ -49,15 +49,15 @@ def conv_block_mob(input, name, features, filter_size, stride, relu=True, norm=T
         weights = tf.einsum('abcd,efcg->abcg', depthwise_weights, pointwise_weights)
         # normalization = tf.sqrt(tf.reduce_sum(tf.square(weights), (0, 1, 2), True) + 1e-5)
 
-        pad = filter_size // 2
-        input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
+        #pad = filter_size // 2
+        #input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
 
         conv = input
         if sep_conv:
-            conv = tf.nn.depthwise_conv2d(conv, depthwise_weights, (1, stride, stride, 1), 'VALID')
+            conv = tf.nn.depthwise_conv2d(conv, depthwise_weights, (1, stride, stride, 1), 'SAME')
             conv = tf.nn.conv2d(conv, pointwise_weights, (1, 1, 1, 1), 'VALID')
         else:
-            conv = tf.nn.conv2d(conv, weights, (1, stride, stride, 1), 'VALID')
+            conv = tf.nn.conv2d(conv, weights, (1, stride, stride, 1), 'SAME')
         # conv /= normalization
 
         if norm:
