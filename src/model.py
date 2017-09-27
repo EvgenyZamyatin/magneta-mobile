@@ -88,6 +88,7 @@ class Model:
     def _build_transformer(self):
         def transform(input_, reuse, sep_conv):
             with tf.variable_scope('transformer', reuse=reuse):
+                input_ /= 255
                 h = conv_block_mob(input_, 'conv1', 16, 3, 1, sep_conv=sep_conv)
                 h = conv_block_mob(h, 'conv2', 32, 3, 2, sep_conv=sep_conv)
                 h = conv_block_mob(h, 'conv3', 64, 3, 2, sep_conv=sep_conv)
