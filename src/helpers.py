@@ -2,6 +2,11 @@ import tensorflow as tf
 from tensorflow.contrib import slim as slim
 
 
+def pool_layer(input):
+    return tf.nn.max_pool(input, ksize=(1, 2, 2, 1), strides=(1, 2, 2, 1),
+                          padding='SAME')
+
+
 def conv_layer(input, weights, bias, pad='SAME'):
     conv = tf.nn.conv2d(input, weights, strides=(1, 1, 1, 1),
                         padding=pad)
@@ -103,7 +108,4 @@ def nearest_up_sampling(net, scale=2):
     return net
 
 
-def pool_layer(input):
-    return tf.nn.max_pool(input, ksize=(1, 2, 2, 1), strides=(1, 2, 2, 1),
-                          padding='SAME')
 """
