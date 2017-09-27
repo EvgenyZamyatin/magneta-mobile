@@ -107,7 +107,7 @@ class Model:
 
     def _build_fn(self):
         x_var = tf.placeholder(tf.float32, (None, 256, 256, 3), 'input_x')
-        r = self._transform(x_var, False)
+        r = self._transform(x_var, False, False)
         x_ftr_vgg = self._encode_vgg(x_var, False)
         r_ftr_vgg = self._encode_vgg(r, True)
 
@@ -142,7 +142,7 @@ class Model:
 
         decoder_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'transformer')
         self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss, var_list=decoder_params)
-        self.test = tf.identity(r, 'output')
+        self.test = tf.identity(self._transform(x_var, True, True), 'output')
         self.args = {
             'x': x_var,
         }
