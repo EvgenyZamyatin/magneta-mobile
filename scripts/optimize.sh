@@ -1,7 +1,7 @@
 python3 -m tensorflow.python.tools.optimize_for_inference \
   --input=$1 \
   --output="$2" \
-  --input_names="input_x,input_alpha" \
+  --input_names="input_x" \
   --output_names="output"
 
 python3 -m scripts.quantize_graph \

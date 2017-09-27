@@ -30,7 +30,7 @@ def load_graph(file_name):
 def evaluate_graph(graph_file_name, output, x, alpha):
     with load_graph(graph_file_name).as_default() as graph:
         image_buffer_input_x = graph.get_tensor_by_name('input_x:0')
-        image_buffer_input_alpha = graph.get_tensor_by_name('input_alpha:0')
+        # image_buffer_input_alpha = graph.get_tensor_by_name('input_alpha:0')
         result = graph.get_tensor_by_name('output:0')
     x = imread(x)
     x = imresize(x, (256, 256))
@@ -39,7 +39,7 @@ def evaluate_graph(graph_file_name, output, x, alpha):
         run_metadata = tf.RunMetadata()
         feed_dict = {
             image_buffer_input_x: [x],
-            image_buffer_input_alpha: [alpha]
+            # image_buffer_input_alpha: [alpha]
         }
         tm = []
         start = time()
