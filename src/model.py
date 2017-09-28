@@ -203,7 +203,13 @@ class Model:
             for layer, f in result.items():
                 pruned = self.sess.run(tf.get_variable(layer[:-1]))
                 s.update([(value, layer, i) for i, (value, p) in enumerate(zip(f, pruned)) if p == 1.])
-        print(min(s))
+            to_prune_f, to_prune_layer, to_prune_id = min(s)
+            print('Pruning:', to_prune_f, to_prune_layer, to_prune_id)
+            to_prune_x = tf.get_variable(to_prune_layer[:-1])
+            to_prune_x_v = self.sess.run(to_prune_x)
+            to_prune_x_v[to_prune_id] = 0
+            self.sess.run(tf.assign(to_prune_x, to_prune_x_v))
+
 
     def save(self, file):
         assert self.sess
