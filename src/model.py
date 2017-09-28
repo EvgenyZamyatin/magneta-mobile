@@ -198,10 +198,9 @@ class Model:
                                                       feed_dict={self.args['x']: x[np.newaxis]}))
             for layer, f in res:
                 result[layer] += f
-        print(result)
         s = set()
         for layer, f in result.items():
-            s.update([(value, layer, i) for i, value in f])
+            s.update([(value, layer, i) for i, value in enumerate(f)])
         print(min(s))
 
     def save(self, file):
