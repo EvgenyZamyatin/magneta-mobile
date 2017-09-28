@@ -184,6 +184,7 @@ class Model:
                       'uconv2_pruned', 'uconv3_pruned']:
             h = transform_net[layer]
             cur_rank = tf.reduce_mean(h * tf.gradients(content_loss, h), axis=(0, 1, 2))
+            print(cur_rank.shape)
             cur_rank = tf.nn.l2_normalize(cur_rank, 0)
             rank[layer] = cur_rank
         self.rank = rank
