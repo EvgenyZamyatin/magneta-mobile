@@ -86,31 +86,57 @@ class Model:
         self._encode_vgg = lambda x, reuse: vgg_net(vgg_path, x, reuse)
 
     def _build_transformer(self):
-        def transform(input_, reuse, sep_conv):
+        def transform(input_, reuse, sep_conv, only_out=True):
             with tf.variable_scope('transformer', reuse=reuse):
+                net = {}
                 input_ /= 255
-                h = conv_block_mob(input_, 'conv1', 8, 3, 1, sep_conv=sep_conv)
-                h = conv_block_mob(h, 'conv2', 16, 3, 2, sep_conv=sep_conv)
-                h = conv_block_mob(h, 'conv3', 32, 3, 2, sep_conv=sep_conv)
-                #h = conv_block_mob(h, 'conv4', 128, 3, 2, sep_conv=sep_conv)
+                net['input'] = input_
+                h = conv_block_mob(input_, 'conv1', 16, 3, 1, sep_conv=sep_conv)
+                net['conv1'] = h
+                h *= tf.get_variable('conv1_prune', initializer=tf.ones(16), trainable=False)
+                net['conv1_pruned'] = h
+                h = conv_block_mob(h, 'conv2', 32, 3, 2, sep_conv=sep_conv)
+                net['conv2'] = h
+                h *= tf.get_variable('conv2_prune', initializer=tf.ones(32), trainable=False)
+                net['conv2_pruned'] = h
+                h = conv_block_mob(h, 'conv3', 64, 3, 2, sep_conv=sep_conv)
+                net['conv3'] = h
+                h *= tf.get_variable('conv3_prune', initializer=tf.ones(64), trainable=False)
+                net['conv3_pruned'] = h
 
                 h = residual_block_mob(h, 'residual1', 3, sep_conv=sep_conv)
+                net['residual1'] = h
+                h *= tf.get_variable('residual1_prune', initializer=tf.ones(64), trainable=False)
+                net['residual1_pruned'] = h
                 h = residual_block_mob(h, 'residual2', 3, sep_conv=sep_conv)
+                net['residual2'] = h
+                h *= tf.get_variable('residual2_prune', initializer=tf.ones(64), trainable=False)
+                net['residual2_pruned'] = h
                 h = residual_block_mob(h, 'residual3', 3, sep_conv=sep_conv)
-                #h = residual_block_mob(h, 'residual4', 3, sep_conv=sep_conv)
-                #h = residual_block_mob(h, 'residual5', 3, sep_conv=sep_conv)
+                net['residual3'] = h
+                h *= tf.get_variable('residual3_prune', initializer=tf.ones(64), trainable=False)
+                net['residual3_pruned'] = h
 
-                #h = upsampling_mob(h, 'uconv1', 64, 3, 2, sep_conv=sep_conv)
                 h = upsampling_mob(h, 'uconv2', 32, 3, 2, sep_conv=sep_conv)
+                net['uconv2'] = h
+                h *= tf.get_variable('uconv2_prune', initializer=tf.ones(32), trainable=False)
+                net['uconv2_pruned'] = h
                 h = upsampling_mob(h, 'uconv3', 16, 3, 2, sep_conv=sep_conv)
+                net['uconv3'] = h
+                h *= tf.get_variable('uconv3_prune', initializer=tf.ones(16), trainable=False)
+                net['uconv3_pruned'] = h
+
                 h = upsampling_mob(h, 'uconv4', 3, 3, 1, False, False, sep_conv=sep_conv)
+                net['uconv4'] = h
                 h = tf.nn.tanh(h) * 150 + 255 / 2
-            return h
+            if only_out:
+                return h
+            return h, net
         self._transform = transform
 
     def _build_fn(self):
         x_var = tf.placeholder(tf.float32, (None, 256, 256, 3), 'input_x')
-        r = self._transform(x_var, False, False)
+        r, transform_net = self._transform(x_var, False, False, False)
         x_ftr_vgg = self._encode_vgg(x_var, False)
         r_ftr_vgg = self._encode_vgg(r, True)
 
@@ -143,12 +169,29 @@ class Model:
         self.losses = losses
 
         decoder_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'transformer')
+        print(decoder_params)
         self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss, var_list=decoder_params)
         self.test = tf.clip_by_value(self._transform(x_var, True, True), 0, 255, 'output')
         self.args = {
             'x': x_var,
         }
         self.saver = tf.train.Saver()
+
+        rank = {}
+        for layer in ['conv1_pruned', 'conv2_pruned', 'conv3_pruned',
+                      'residual1_pruned', 'residual2_pruned', 'residual3_pruned',
+                      'uconv2_pruned', 'uconv3_pruned', 'uconv4_pruned']:
+            h = transform_net[layer]
+            cur_rank = tf.reduce_mean(h * tf.gradients(loss, h), axis=(0, 1, 2))
+            cur_rank = tf.nn.l2_normalize(cur_rank, 0)
+            rank[layer] = cur_rank
+        self.rank = rank
+
+    def prune_step(self, batch):
+        batch = _preprocess(batch)
+        for layer, f in self.rank.items():
+            self.sess.run(f, feed_dict={self.args['x']: batch})
+            print(layer, f)
 
     def save(self, file):
         assert self.sess
