@@ -31,8 +31,8 @@ def train(args):
     if args.weights is not None:
         model.load(args.weights)
     batch_size = args.batch_size
-    num_prune_batches = args.prune_steps * args.prune_batch
-    num_batches = args.prune_steps * args.batch_size + args.prune_steps
+    num_prune_batches = args.prune_steps
+    num_batches = args.prune_steps * args.batch_count + args.prune_steps
 
     with model, \
             BatchGenerator(args.content_images, image_loader, num_batches, batch_size, num_proc=2) as content_bg, \

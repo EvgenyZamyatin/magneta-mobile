@@ -198,7 +198,7 @@ class Model:
             res = zip(self.rank.keys(), self.sess.run([i for i in self.rank.values()],
                                                       feed_dict={self.args['x']: x[np.newaxis]}))
             for layer, f in res:
-                result[layer] += f
+                result[layer] += f / len(batch)
         s = set()
         with tf.variable_scope('transformer', reuse=True):
             for layer, f in result.items():
