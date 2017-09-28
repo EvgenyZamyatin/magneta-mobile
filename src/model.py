@@ -199,8 +199,10 @@ class Model:
             for layer, f in res:
                 result[layer] += f
         s = set()
-        for layer, f in result.items():
-            s.update([(value, layer, i) for i, value in enumerate(f)])
+        with tf.variable_scope('transformer', reuse=True):
+            for layer, f in result.items():
+                pruned = self.sess.run(tf.get_variable(layer[:-1]))
+                s.update([(value, layer, i) for i, (value, p) in enumerate(zip(f, pruned)) if p == 1.])
         print(min(s))
 
     def save(self, file):
