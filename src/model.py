@@ -193,7 +193,7 @@ class Model:
     def prune_step(self, batch):
         batch = _preprocess(batch)
         for layer, f in self.rank.items():
-            res = self.sess.run(f, feed_dict={self.args['x']: batch})
+            res = self.sess.run(f, feed_dict={self.args['x']: batch})[0]
             print(layer)
             print(res)
             print(res.shape)
