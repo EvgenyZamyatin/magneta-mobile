@@ -194,6 +194,7 @@ class Model:
             res = self.sess.run(f, feed_dict={self.args['x']: batch})[0]
             print(layer)
             print(res)
+            print((res**2).sum())
             print(res.mean())
             print(res.shape)
 
