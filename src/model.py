@@ -33,9 +33,9 @@ def _gram_matrix(feature_maps):
 class Model:
     def __init__(self, content_weight, style_weight, tv_weight, learning_rate, style_image, vgg_path=None,
                  log_path=None, **kwargs):
-        self.style_weight = style_weight
-        self.tv_weight = tv_weight
-        self.content_weight = content_weight
+        self.style_weight = tf.constant(style_weight, tf.float32)
+        self.tv_weight = tf.constant(tv_weight, tf.float32)
+        self.content_weight = tf.constant(content_weight, tf.float32)
         self.learning_rate = learning_rate
         self.log_path = log_path
         self.style_image = _preprocess(style_image)
@@ -183,7 +183,7 @@ class Model:
                       'residual1_pruned', 'residual2_pruned', 'residual3_pruned',
                       'uconv2_pruned', 'uconv3_pruned']:
             h = transform_net[layer]
-            cur_rank = tf.reduce_mean(h * tf.gradients(content_loss * tf.constant(self.content_weight), h), axis=(0, 1, 2, 3))
+            cur_rank = tf.reduce_mean(h * tf.gradients(loss, h), axis=(0, 1, 2, 3))
             cur_rank = tf.nn.l2_normalize(cur_rank, 0)
             rank[layer] = cur_rank
         self.rank = rank
