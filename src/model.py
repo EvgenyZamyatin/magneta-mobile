@@ -183,11 +183,9 @@ class Model:
                       'residual1_pruned', 'residual2_pruned', 'residual3_pruned',
                       'uconv2_pruned', 'uconv3_pruned']:
             h = transform_net[layer]
-            #cur_rank = tf.reduce_mean(h * tf.gradients(loss, h), axis=(0, 1, 2))
-            #cur_rank = tf.reduce_mean(tf.gradients(loss, h), axis=(0, 1, 2))
-            #cur_rank = tf.nn.l2_normalize(cur_rank, 0)
-            #rank[layer] = cur_rank
-            rank[layer] = tf.gradients(content_loss, h)
+            cur_rank = tf.reduce_mean(h * tf.gradients(content_loss, h), axis=(0, 1, 2))
+            cur_rank = tf.nn.l2_normalize(cur_rank, 0)
+            rank[layer] = cur_rank
         self.rank = rank
 
     def prune_step(self, batch):
@@ -195,6 +193,7 @@ class Model:
         for layer, f in self.rank.items():
             res = self.sess.run(f, feed_dict={self.args['x']: batch})[0]
             print(layer)
+            print(res)
             print(res.mean())
             print(res.shape)
 
