@@ -209,6 +209,7 @@ class Model:
             to_prune_x_v = self.sess.run(to_prune_x)
             to_prune_x_v[to_prune_id] = 0
             self.sess.run(tf.assign(to_prune_x, to_prune_x_v))
+            print(self.sess.run(to_prune_x))
 
 
     def save(self, file):
