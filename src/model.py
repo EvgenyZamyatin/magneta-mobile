@@ -180,7 +180,7 @@ class Model:
         rank = {}
         for layer in ['conv1_pruned', 'conv2_pruned', 'conv3_pruned',
                       'residual1_pruned', 'residual2_pruned', 'residual3_pruned',
-                      'uconv2_pruned', 'uconv3_pruned', 'uconv4_pruned']:
+                      'uconv2_pruned', 'uconv3_pruned']:
             h = transform_net[layer]
             cur_rank = tf.reduce_mean(h * tf.gradients(loss, h), axis=(0, 1, 2))
             cur_rank = tf.nn.l2_normalize(cur_rank, 0)
