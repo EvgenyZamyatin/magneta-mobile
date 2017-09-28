@@ -183,7 +183,7 @@ class Model:
                       'residual1_pruned', 'residual2_pruned', 'residual3_pruned',
                       'uconv2_pruned', 'uconv3_pruned']:
             h = transform_net[layer]
-            cur_rank = tf.reduce_mean(h * tf.gradients(content_loss * self.content_weight, h), axis=(0, 1, 2, 3))
+            cur_rank = tf.reduce_mean(h * tf.gradients(content_loss * tf.constant(self.content_weight), h), axis=(0, 1, 2, 3))
             cur_rank = tf.nn.l2_normalize(cur_rank, 0)
             rank[layer] = cur_rank
         self.rank = rank
