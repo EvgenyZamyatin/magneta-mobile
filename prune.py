@@ -40,7 +40,7 @@ def train(args):
         print('start train')
 
         for epoch in range(args.prune_steps):
-            model.prune_step(prune_bg.get_batch())
+            model.prune_step(prune_bg.get_batch(), args.prune_count)
 
             loss = 0
             cnt = 0
@@ -70,6 +70,7 @@ if __name__ == '__main__':
     train_parser = argparse.ArgumentParser()
     train_parser.add_argument("--prune-steps", type=int, required=True)
     train_parser.add_argument("--prune-batch", type=int, required=True)
+    train_parser.add_argument("--prune-count", type=int, default=1)
 
     train_parser.add_argument("--content-images", "-ci", type=str, required=True, help='Path to imgs')
     train_parser.add_argument("--style-image", "-si", type=str, required=True, help='Path to img')
