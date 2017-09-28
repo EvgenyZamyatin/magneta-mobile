@@ -187,7 +187,7 @@ class Model:
             #cur_rank = tf.reduce_mean(tf.gradients(loss, h), axis=(0, 1, 2))
             #cur_rank = tf.nn.l2_normalize(cur_rank, 0)
             #rank[layer] = cur_rank
-            rank[layer] = tf.gradients(loss, h)
+            rank[layer] = tf.gradients(tf.reduce_sum(r), h)
         self.rank = rank
 
     def prune_step(self, batch):
