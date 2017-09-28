@@ -107,15 +107,18 @@ class Model:
                 h *= tf.get_variable('conv3_prune', initializer=tf.ones(64), trainable=False)
                 net['conv3_pruned'] = h
 
-                h = residual_block_mob(h, 'residual1', 3, sep_conv=sep_conv)
+                #h = residual_block_mob(h, 'residual1', 3, sep_conv=sep_conv)
+                h = conv_block_mob(h, 'residual1', 64, 3, 1, sep_conv=sep_conv)
                 net['residual1'] = h
                 h *= tf.get_variable('residual1_prune', initializer=tf.ones(64), trainable=False)
                 net['residual1_pruned'] = h
-                h = residual_block_mob(h, 'residual2', 3, sep_conv=sep_conv)
+                #h = residual_block_mob(h, 'residual2', 3, sep_conv=sep_conv)
+                h = conv_block_mob(h, 'residual2', 64, 3, 1, sep_conv=sep_conv)
                 net['residual2'] = h
                 h *= tf.get_variable('residual2_prune', initializer=tf.ones(64), trainable=False)
                 net['residual2_pruned'] = h
-                h = residual_block_mob(h, 'residual3', 3, sep_conv=sep_conv)
+                #h = residual_block_mob(h, 'residual3', 3, sep_conv=sep_conv)
+                h = conv_block_mob(h, 'residual3', 64, 3, 1, sep_conv=sep_conv)
                 net['residual3'] = h
                 h *= tf.get_variable('residual3_prune', initializer=tf.ones(64), trainable=False)
                 net['residual3_pruned'] = h
