@@ -202,7 +202,7 @@ class Model:
         with tf.variable_scope('transformer', reuse=True):
             for layer, f in result.items():
                 pruned = self.sess.run(tf.get_variable(layer[:-1]))
-                s.update([(value, layer, i) for i, (value, p) in enumerate(zip(f, pruned)) if p == 1.])
+                s.update([(value, layer, i) for i, (value, p) in enumerate(zip(f, pruned)) if np.allclose(p, 1.)])
             to_prune_f, to_prune_layer, to_prune_id = min(s)
             print('Pruning:', to_prune_f, to_prune_layer, to_prune_id)
             to_prune_x = tf.get_variable(to_prune_layer[:-1])
