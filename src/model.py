@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 from tensorflow.python.framework import graph_util
 from tensorflow.python.platform import gfile
@@ -176,7 +178,7 @@ class Model:
         }
         self.saver = tf.train.Saver()
 
-        rank = {}
+        rank = OrderedDict()
         for layer in ['conv1_pruned', 'conv2_pruned', 'conv3_pruned',
                       'residual1_pruned', 'residual2_pruned', 'residual3_pruned',
                       'uconv2_pruned', 'uconv3_pruned']:
