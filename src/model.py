@@ -169,7 +169,6 @@ class Model:
         self.losses = losses
 
         decoder_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'transformer')
-        print(decoder_params)
         self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss, var_list=decoder_params)
         self.test = tf.clip_by_value(self._transform(x_var, True, True), 0, 255, 'output')
         self.args = {
@@ -190,8 +189,8 @@ class Model:
     def prune_step(self, batch):
         batch = _preprocess(batch)
         for layer, f in self.rank.items():
-            self.sess.run(f, feed_dict={self.args['x']: batch})
-            print(layer, f)
+            res = self.sess.run(f, feed_dict={self.args['x']: batch})
+            print(layer, res)
 
     def save(self, file):
         assert self.sess
