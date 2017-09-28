@@ -3,6 +3,7 @@ from collections import OrderedDict
 import numpy as np
 from tensorflow.python.framework import graph_util
 from tensorflow.python.platform import gfile
+from tqdm import tqdm
 
 from src.vgg import net as vgg_net
 from src.helpers import *
@@ -193,7 +194,7 @@ class Model:
     def prune_step(self, batch):
         batch = _preprocess(batch)
         result = OrderedDict([(k, 0) for k in self.rank.keys()])
-        for x in batch:
+        for x in tqdm(batch):
             res = zip(self.rank.keys(), self.sess.run([i for i in self.rank.values()],
                                                       feed_dict={self.args['x']: x[np.newaxis]}))
             for layer, f in res:
