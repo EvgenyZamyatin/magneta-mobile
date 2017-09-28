@@ -195,7 +195,7 @@ class Model:
         for layer, f in self.rank.items():
             res = self.sess.run(f, feed_dict={self.args['x']: batch})[0]
             print(layer)
-            print(res)
+            print(res.mean())
             print(res.shape)
 
     def save(self, file):
