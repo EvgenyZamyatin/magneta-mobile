@@ -192,10 +192,12 @@ class Model:
 
     def prune_step(self, batch):
         batch = _preprocess(batch)
-        for layer, f in self.rank.items():
-            res = self.sess.run(f, feed_dict={self.args['x']: batch})
-            print(layer)
-            print(res)
+        print(self.rank.keys())
+        res = zip(self.rank.keys(), self.sess.run([i for i in self.rank.values()], feed_dict={self.args['x']: batch}))
+        s = set()
+        for layer, f in res:
+            s.update([(value, layer, i) for i, value in f])
+        print(min(s))
 
     def save(self, file):
         assert self.sess
