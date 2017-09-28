@@ -192,10 +192,14 @@ class Model:
 
     def prune_step(self, batch):
         batch = _preprocess(batch)
-        print(self.rank.keys())
-        res = zip(self.rank.keys(), self.sess.run([i for i in self.rank.values()], feed_dict={self.args['x']: batch}))
+        result = OrderedDict([(k, 0) for k in self.rank.keys()])
+        for x in batch:
+            res = zip(self.rank.keys(), self.sess.run([i for i in self.rank.values()],
+                                                      feed_dict={self.args['x']: x[np.newaxis]}))
+            for layer, f in res:
+                result[layer] += f
         s = set()
-        for layer, f in res:
+        for layer, f in result.items():
             s.update([(value, layer, i) for i, value in f])
         print(min(s))
 
