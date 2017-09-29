@@ -179,7 +179,7 @@ class Model:
             'x': x_var,
         }
         self.saver = tf.train.Saver()
-
+        return
         rank = OrderedDict()
         for layer in ['conv1_pruned', 'conv2_pruned', 'conv3_pruned',
                       'residual1_pruned', 'residual2_pruned', 'residual3_pruned',
