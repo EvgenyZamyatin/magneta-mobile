@@ -8,5 +8,5 @@ python3 -m scripts.quantize_graph \
   --input="$2" \
   --output="$2" \
   --output_node_names="output" \
-  --mode="weights_rounded" \
+  --mode="quantize" \
   --test_input_dims="1,256,256,3"
