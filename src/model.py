@@ -102,7 +102,7 @@ class Model:
                 net['conv2'] = h
                 #h *= tf.get_variable('conv2_prune', initializer=tf.ones(32), trainable=False)
                 #net['conv2_pruned'] = h
-                h = conv_block_mob(h, 'conv3', 32, 3, 2, sep_conv=sep_conv)
+                h = conv_block_mob(h, 'conv3', 32, 3, 2, sep_conv=False)
                 net['conv3'] = h
                 #h *= tf.get_variable('conv3_prune', initializer=tf.ones(64), trainable=False)
                 #net['conv3_pruned'] = h
@@ -120,7 +120,7 @@ class Model:
                 #h *= tf.get_variable('residual3_prune', initializer=tf.ones(64), trainable=False)
                 #net['residual3_pruned'] = h
 
-                h = upsampling_mob(h, 'uconv2', 32, 3, 2, sep_conv=sep_conv)
+                h = upsampling_mob(h, 'uconv2', 32, 3, 2, sep_conv=False)
                 net['uconv2'] = h
                 #h *= tf.get_variable('uconv2_prune', initializer=tf.ones(32), trainable=False)
                 #net['uconv2_pruned'] = h
