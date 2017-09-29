@@ -94,15 +94,15 @@ class Model:
                 net = {}
                 input_ /= 255
                 net['input'] = input_
-                h = conv_block_mob(input_, 'conv1', 16, 3, 1, sep_conv=False)
+                h = conv_block_mob(input_, 'conv1', 16, 3, 1, sep_conv=sep_conv)
                 net['conv1'] = h
                 #h *= tf.get_variable('conv1_prune', initializer=tf.ones(16), trainable=False)
                 #net['conv1_pruned'] = h
-                h = conv_block_mob(h, 'conv2', 32, 3, 2, sep_conv=False)
+                h = conv_block_mob(h, 'conv2', 32, 3, 2, sep_conv=sep_conv)
                 net['conv2'] = h
                 #h *= tf.get_variable('conv2_prune', initializer=tf.ones(32), trainable=False)
                 #net['conv2_pruned'] = h
-                h = conv_block_mob(h, 'conv3', 32, 3, 2, sep_conv=False)
+                h = conv_block_mob(h, 'conv3', 32, 3, 2, sep_conv=sep_conv)
                 net['conv3'] = h
                 #h *= tf.get_variable('conv3_prune', initializer=tf.ones(64), trainable=False)
                 #net['conv3_pruned'] = h
@@ -120,16 +120,16 @@ class Model:
                 #h *= tf.get_variable('residual3_prune', initializer=tf.ones(64), trainable=False)
                 #net['residual3_pruned'] = h
 
-                h = upsampling_mob(h, 'uconv2', 32, 3, 2, sep_conv=False)
+                h = upsampling_mob(h, 'uconv2', 32, 3, 2, sep_conv=sep_conv)
                 net['uconv2'] = h
                 #h *= tf.get_variable('uconv2_prune', initializer=tf.ones(32), trainable=False)
                 #net['uconv2_pruned'] = h
-                h = upsampling_mob(h, 'uconv3', 16, 3, 2, sep_conv=False)
+                h = upsampling_mob(h, 'uconv3', 16, 3, 2, sep_conv=sep_conv)
                 net['uconv3'] = h
                 #h *= tf.get_variable('uconv3_prune', initializer=tf.ones(16), trainable=False)
                 #net['uconv3_pruned'] = h
 
-                h = upsampling_mob(h, 'uconv4', 3, 3, 1, False, False, sep_conv=False)
+                h = upsampling_mob(h, 'uconv4', 3, 3, 1, False, False, sep_conv=sep_conv)
                 net['uconv4'] = h
                 h = tf.nn.tanh(h) * 150 + 255 / 2
             if only_out:
