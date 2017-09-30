@@ -34,38 +34,46 @@ def conv_block(input, name, features, filter_size, stride, relu=True, norm=True,
     return conv
 
 
-def conv_block_mob(input, name, features, filter_size, stride, relu=True, norm=True, sep_conv=True, **kwargs):
+def conv_block_mob(input, name, features, filter_size, stride, relu=True, norm=True, sep_conv=True, low_rank=False, **kwargs):
     with tf.variable_scope(name):
         _, rows, cols, in_channels = [i.value for i in input.get_shape()]
 
-        depthwise_weights = tf.get_variable('W_depth',
-                                            shape=[filter_size, filter_size, in_channels, 1],
-                                            initializer=tf.contrib.layers.xavier_initializer())
+        if low_rank:
+            depthwise_weights_w = tf.get_variable('W_depth_w',
+                                                shape=[1, filter_size, in_channels, 1],
+                                                initializer=tf.contrib.layers.xavier_initializer())
+            depthwise_weights_h = tf.get_variable('W_depth_h',
+                                                shape=[filter_size, 1, in_channels, 1],
+                                                initializer=tf.contrib.layers.xavier_initializer())
+        else:
+            depthwise_weights = tf.get_variable('W_depth',
+                                                  shape=[filter_size, filter_size, in_channels, 1],
+                                                  initializer=tf.contrib.layers.xavier_initializer())
 
         pointwise_weights = tf.get_variable('W_point',
                                             shape=[1, 1, in_channels, features],
                                             initializer=tf.contrib.layers.xavier_initializer())
 
-        weights = tf.einsum('abcd,efcg->abcg', depthwise_weights, pointwise_weights)
-        # normalization = tf.sqrt(tf.reduce_sum(tf.square(weights), (0, 1, 2), True) + 1e-5)
+        if not low_rank:
+            weights = tf.einsum('abcd,efcg->abcg', depthwise_weights, pointwise_weights)
 
-        #pad = filter_size // 2
-        #input = tf.pad(input, [[0, 0], [pad, pad], [pad, pad], [0, 0]], 'REFLECT')
-
-        conv = input
-        if sep_conv:
-            conv = tf.nn.depthwise_conv2d(conv, depthwise_weights, (1, stride, stride, 1), 'SAME')
-            conv = tf.nn.conv2d(conv, pointwise_weights, (1, 1, 1, 1), 'VALID')
+            conv = input
+            if sep_conv:
+                conv = tf.nn.depthwise_conv2d(conv, depthwise_weights, (1, stride, stride, 1), 'SAME')
+                conv = tf.nn.conv2d(conv, pointwise_weights, (1, 1, 1, 1), 'VALID')
+            else:
+                conv = tf.nn.conv2d(conv, weights, (1, stride, stride, 1), 'SAME')
         else:
-            conv = tf.nn.conv2d(conv, weights, (1, stride, stride, 1), 'SAME')
-        # conv /= normalization
+            conv = input
+            conv = tf.nn.depthwise_conv2d(conv, depthwise_weights_w, (1, 1, stride, 1), 'SAME')
+            conv = tf.nn.depthwise_conv2d(conv, depthwise_weights_h, (1, stride, 1, 1), 'SAME')
+            conv = tf.nn.conv2d(conv, pointwise_weights, (1, 1, 1, 1), 'VALID')
 
         if norm:
             conv = _instance_norm(conv, name+'/norm')
         else:
             bias = tf.get_variable('b', initializer=tf.zeros(features))
             conv = tf.nn.bias_add(conv, bias)
-
         if relu:
             conv = tf.nn.relu(conv)
     return conv
@@ -78,11 +86,11 @@ def upsampling(input_, name, features, filter_size, stride, relu=True, norm=True
         return conv_block(upsampled_input, name + '/conv', features, filter_size, 1, relu, norm)
 
 
-def upsampling_mob(input_, name, features, filter_size, stride, relu=True, norm=True, sep_conv=True, **kwargs):
+def upsampling_mob(input_, name, features, filter_size, stride, relu=True, norm=True, sep_conv=True, low_rank=False, **kwargs):
     with tf.variable_scope(name):
         _, height, width, _ = [s.value for s in input_.get_shape()]
         upsampled_input = tf.image.resize_nearest_neighbor(input_, [stride * height, stride * width])
-        return conv_block_mob(upsampled_input, name + '/conv', features, filter_size, 1, relu, norm, sep_conv)
+        return conv_block_mob(upsampled_input, name + '/conv', features, filter_size, 1, relu, norm, sep_conv, low_rank)
 
 
 def residual_block(input_, name, kernel_size, **kwargs):
